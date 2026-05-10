@@ -10,19 +10,42 @@ import {
   Platform,
 } from "react-native";
 
-function generarSaludo(nombre) {
+type Tarea = {
+  id: number;
+  nombre: string;
+  completada: boolean;
+};
+
+function generarSaludo(nombre: string): string {
   return `Hola, ${nombre}. Bienvenido a Mi primera aplicacion movil`;
 }
 
 export default function App() {
-  const [nombre, setNombre] = useState("");
-  const [edad, setEdad] = useState("");
-  const [enviado, setEnviado] = useState(false);
+  const [nombre, setNombre] = useState<string>("");
+  const [edad, setEdad] = useState<string>("");
+  const [enviado, setEnviado] = useState<boolean>(false);
+  const [tarea, setTarea] = useState<string>("");
+  const [tareas, setTareas] = useState<Tarea[]>([]);
 
   const handleEntrar = () => {
     if (nombre.trim() !== "" && edad.trim() !== "") {
       setEnviado(true);
     }
+  };
+
+  const agregarTarea = () => {
+    if (tarea.trim() !== "") {
+      setTareas([...tareas, { id: Date.now(), nombre: tarea, completada: false }]);
+      setTarea("");
+    }
+  };
+
+  const completarTarea = (id: number) => {
+    setTareas(tareas.map((t) => t.id === id ? { ...t, completada: !t.completada } : t));
+  };
+
+  const eliminarTarea = (id: number) => {
+    setTareas(tareas.filter((t) => t.id !== id));
   };
 
   if (!enviado) {
@@ -86,6 +109,40 @@ export default function App() {
         </Text>
       </View>
 
+      <View style={styles.card}>
+        <Text style={styles.label}>Lista de tareas</Text>
+        <TextInput
+          style={[styles.input, { marginTop: 8 }]}
+          placeholder="Escribe una tarea..."
+          placeholderTextColor="#64748b"
+          value={tarea}
+          onChangeText={setTarea}
+        />
+        <TouchableOpacity style={styles.botonAgregar} onPress={agregarTarea}>
+          <Text style={styles.botonAgregarTexto}>Agregar</Text>
+        </TouchableOpacity>
+
+        {tareas.length === 0 && (
+          <Text style={styles.vacio}>No hay tareas aun</Text>
+        )}
+
+        {tareas.map((item) => (
+          <View key={item.id} style={styles.tareaItem}>
+            <Text style={[styles.tareaTexto, item.completada && styles.tareaCompletada]}>
+              {item.nombre}
+            </Text>
+            <View style={styles.tareaBotones}>
+              <TouchableOpacity style={styles.btnCompletar} onPress={() => completarTarea(item.id)}>
+                <Text style={styles.btnCompletarTexto}>{item.completada ? "Deshacer" : "Listo"}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.btnEliminar} onPress={() => eliminarTarea(item.id)}>
+                <Text style={styles.btnEliminarTexto}>Eliminar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))}
+      </View>
+
       <TouchableOpacity style={styles.botonVolver} onPress={() => setEnviado(false)}>
         <Text style={styles.botonVolverTexto}>Volver</Text>
       </TouchableOpacity>
@@ -103,6 +160,7 @@ const COLORS = {
   muted: "#94a3b8",
   success: "#4ade80",
   warning: "#fb923c",
+  danger: "#f87171",
 };
 
 const styles = StyleSheet.create({
@@ -232,6 +290,69 @@ const styles = StyleSheet.create({
   menorDeEdad: {
     color: COLORS.warning,
     backgroundColor: "#1c0a00",
+  },
+  botonAgregar: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.accent,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: "center",
+    marginTop: 10,
+    marginBottom: 14,
+  },
+  botonAgregarTexto: {
+    color: COLORS.accent,
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  vacio: {
+    color: COLORS.muted,
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 8,
+  },
+  tareaItem: {
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    paddingVertical: 10,
+    gap: 8,
+  },
+  tareaTexto: {
+    color: COLORS.text,
+    fontSize: 15,
+  },
+  tareaCompletada: {
+    textDecorationLine: "line-through",
+    color: COLORS.muted,
+  },
+  tareaBotones: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  btnCompletar: {
+    borderWidth: 1,
+    borderColor: COLORS.success,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  btnCompletarTexto: {
+    color: COLORS.success,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  btnEliminar: {
+    borderWidth: 1,
+    borderColor: COLORS.danger,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  btnEliminarTexto: {
+    color: COLORS.danger,
+    fontSize: 13,
+    fontWeight: "600",
   },
   botonVolver: {
     borderWidth: 1,
